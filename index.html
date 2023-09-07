@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Video Capture</title>
+</head>
+<body>
+    <h1>Camera Video Capture</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="startButton">Start Capture</button>
+    <button id="stopButton" disabled>Stop Capture</button>
+    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+
+    <script>
+        const videoElement = document.getElementById('video');
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let mediaStream;
+
+        // Check if the browser supports getUserMedia
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function(stream) {
+                    videoElement.srcObject = stream;
+                    mediaStream = stream;
+                })
+                .catch(function(error) {
+                    console.error('Error accessing the camera:', error);
+                });
+        } else {
+            console.error('getUserMedia is not supported in this browser.');
+        }
+
+        startButton.addEventListener('click', function() {
+            startButton.disabled = true;
+            stopButton.disabled = false;
+            canvas.style.display = 'block';
+            captureFrames();
+        });
+
+        stopButton.addEventListener('click', function() {
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            canvas.style.display = 'none';
+            cancelAnimationFrame(animationId);
+            mediaStream.getTracks().forEach(track => track.stop());
+        });
+
+        let animationId;
+
+        function captureFrames() {
+            animationId = requestAnimationFrame(captureFrames);
+            ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        }
+    </script>
+</body>
+</html>
